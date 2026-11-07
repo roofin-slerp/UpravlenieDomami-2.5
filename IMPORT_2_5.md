@@ -1,38 +1,21 @@
-# Загрузка исходников патча 2.5
+# Как загрузить патч 2.5 на GitHub
 
-В этот репозиторий необходимо добавить содержимое архива `UpravlenieDomami_patch_2_5_source.zip` **с сохранением структуры папок**.
+**Основной способ — загрузить один ZIP.** Размещённый в `.github/workflows/import-zip.yml` сценарий автоматически распакует архив в правильные папки и попробует собрать APK.
 
-## Что должно появиться в корне репозитория
+## Загрузка с компьютера
 
-```
-UpravlenieDomami-Android-2.5/
-  app/
-    build.gradle
-    src/main/AndroidManifest.xml
-    src/main/java/ru/dommanagement/local/MainActivity.java
-    src/main/assets/index.html
-    src/main/assets/yaroslavka-card.png
-    src/main/assets/monolit-card.png
-    src/main/assets/banya-card.png
-    ...
-  build.gradle
-  settings.gradle
-  gradle.properties
-  README_RU.txt
-PATCH_2_5_README_RU.md
-.github/workflows/android.yml
-```
+1. Скачайте `UpravlenieDomami_2_5_for_PC.zip` из чата.
+2. В репозитории откройте **Add file → Upload files**.
+3. Перетащите **сам ZIP**, не распаковывая его. Имя должно содержать `2_5` и заканчиваться на `.zip`.
+4. Нажмите **Commit changes** в ветку `main`.
+5. Проверьте вкладку **Actions → Import patch 2.5 ZIP and build APK**. При успешной сборке в её запуске появится артефакт `UpravlenieDomami-2.5-debug-APK`.
 
-## На ПК
-1. Скачайте и распакуйте архив 2.5.
-2. На GitHub откройте репозиторий, выберите **Add file → Upload files**.
-3. Перетащите **папку `UpravlenieDomami-Android-2.5` целиком** из проводника в область загрузки, а также `PATCH_2_5_README_RU.md`.
-4. Проверьте в предварительном списке, что пути начинаются с `UpravlenieDomami-Android-2.5/` и сохраняют `app/src/main/`, затем нажмите **Commit changes**.
-5. Перейдите **Actions → Android 2.5 — Debug APK**, после успешной сборки скачайте артефакт APK.
+Сценарий проверяет наличие файлов `app/src/main/AndroidManifest.xml`, `app/src/main/java/ru/dommanagement/local/MainActivity.java`, `app/src/main/assets/index.html` внутри архива и копирует всю папку `app/src` в корень проекта, **сохраняя структуру**. Ошибочно загруженный `AndroidManifest.xml` из корня удаляется после успешной распаковки.
 
-**Важно:** загружать один ZIP недостаточно. Не размещайте `AndroidManifest.xml` или `MainActivity.java` в корне репозитория.
+**Если Actions не стартовал:** откройте вкладку Actions, выберите Import patch 2.5 ZIP and build APK → Run workflow. Для запуска может потребоваться разрешить GitHub Actions в настройках репозитория.
 
-## Известные ограничения
-Полноценный GPT-помощник, серверная синхронизация Android/iOS, полноценные права пользователей и точное воспроизведение всего дизайна в патче пока не реализованы.
+## Технический статус
 
-**Проверить перед выпуском APK:** в оригинальном архиве `app/build.gradle` может содержать `versionName '2.4'`; необходимо изменить на `2.5` и согласовать `versionCode` для установки поверх прежних версий. Сам факт сборки APK не означает готовности и безопасности приложения.
+Исходники Android 2.5 являются промежуточным прототипом. В них нет полноценного GPT по API, серверной синхронизации с iPhone, полной системы прав пользователей и точного редизайна всех экранов. Успешная сборка APK не означает полной готовности этих функций.
+
+**Публикация кода:** репозиторий может быть Public. Не загружайте секреты, пароли, реальные контакты и API-ключи.
