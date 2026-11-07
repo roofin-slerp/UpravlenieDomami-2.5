@@ -1,0 +1,69 @@
+name: Import patch 2.5 ZIP and build APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '*2_5*.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract and verify Android source
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          archives=( *2_5*.zip )
+          if (( ${#archives[@]} == 0 )); then
+            echo 'Upload UpravlenieDomami_patch_2_5_source.zip to the repository root first.'
+            exit 1
+          fi
+          zipfile="${archives[0]}"
+          mkdir -p "$RUNNER_TEMP/patch25"
+          unzip -q "$zipfile" -d "$RUNNER_TEMP/patch25"
+          source_root="$RUNNER_TEMP/patch25/UpravlenieDomami-Android-2.5"
+          test -f "$source_root/app/src/main/AndroidManifest.xml"
+          test -f "$source_root/app/src/main/java/ru/dommanagement/local/MainActivity.java"
+          test -f "$source_root/app/src/main/assets/index.html"
+          mkdir -p app/src
+          cp -a "$source_root/app/src/." app/src/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A app/src
+          if [ -f AndroidManifest.xml ]; then
+            git rm -f AndroidManifest.xml
+          fi
+          if ! git diff --staged --quiet; then
+            git commit -m "feat(android): import patch 2.5 source into correct app/src paths"
+            git push origin HEAD:main
+          fi
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install platform and build tools
+        run: sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Build debug APK
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: UpravlenieDomami-2.5-debug-APK
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
